@@ -1,39 +1,63 @@
 # BMAD Method Plus Workflows
 
-BMAD BMM의 워크플로우를 확장한 Plus 버전 모음. 외부 스킬을 직접 참조하여 TDD, 병렬 에이전트 디스패치, 체크리스트 기반 코드 리뷰를 지원합니다.
+Extended workflow collection for BMAD BMM — adds TDD enforcement, parallel agent dispatching, checklist-based code review, and automated checklist generation to your Claude Code projects.
 
-## 포함된 워크플로우
+## Included Workflows
 
 ### 1. dev-story-plus
 
-스토리 구현 워크플로우 — TDD 강제 + 병렬 에이전트 디스패치
+Story implementation workflow with TDD enforcement and parallel agent dispatching.
 
-- **TDD 스킬 강제 로드**: 구현 전 `~/.claude/skills/test-driven-development/SKILL.md`를 Read로 로드
-- **병렬 에이전트 디스패치**: 독립적인 태스크 2개 이상 시 자동으로 병렬 에이전트 디스패치
-- **멀티 세션 지원**: step-01b-continue로 이전 세션 이어서 작업 가능
+- **TDD Skill Enforcement**: Loads `test-driven-development` skill before implementation — RED-GREEN-REFACTOR is mandatory
+- **Parallel Agent Dispatching**: Automatically dispatches parallel agents when 2+ independent tasks are detected
+- **Multi-Session Support**: Resume previous sessions via step-01b-continue
+- **Systematic Debugging**: Loads debugging skill on test failures
 
 ### 2. code-review-plus
 
-체크리스트 기반 코드 리뷰 워크플로우 — 주관적 판단 완전 금지
+Checklist-based code review — zero subjective judgment allowed.
 
-- **체크리스트 필수 입력**: 체크리스트 md 파일 없으면 HALT (절대 진행 불가)
-- **주관적 판단 금지**: 체크리스트에 없는 항목은 finding이 아님
-- **파일별 병렬 검토**: 각 파일을 독립 에이전트로 병렬 검토
-- **우선순위 리포트**: HIGH/MEDIUM/LOW 우선순위 분류
-- **코드 수정**: 사용자 요청 시 위반 항목 자동 수정
-- **리뷰 소스 3가지**: 스토리 문서 / git diff / 직접 지정
+- **Checklist Required**: Must provide a checklist `.md` file — workflow HALTs without one
+- **No Subjective Opinions**: If it's not in the checklist, it's not a finding
+- **Parallel File Review**: Each file reviewed by an independent agent in parallel
+- **Scope-Based Fix Options**: Choose fix scope after review:
+  - `[F]` Full — fix ALL findings, no exceptions
+  - `[S]` Small — fix small-scope items only
+  - `[H]` High — fix HIGH priority items only
+  - `[X]` Skip — complete without fixes
+- **Parallel Fix Execution**: Fix agents dispatched per-file in parallel (mirrors review pattern)
+- **No Deferral Policy**: Selected scope items are fixed unconditionally — "too complex" or "needs refactoring" is never an excuse
+- **Priority Classification**: HIGH / MEDIUM / LOW for every finding
+- **Scope Classification**: SMALL / LARGE for every finding
+- **3 Review Sources**: Story document / git diff / manual file list
 
-## 포함된 스킬 (from [obra/superpowers](https://github.com/obra/superpowers))
+### 3. checklist-for-codereview
 
-| 스킬 | 설명 |
-|------|------|
-| `test-driven-development` | RED-GREEN-REFACTOR TDD 프로세스 + 테스트 안티패턴 가이드 |
-| `systematic-debugging` | 4단계 체계적 디버깅 + 근본 원인 추적 + 방어적 검증 |
-| `dispatching-parallel-agents` | 독립 태스크의 병렬 에이전트 디스패치 패턴 |
+Generate, edit, or validate code review checklists for use with `code-review-plus`.
 
-## 설치
+- **3 Modes**: Create / Edit / Validate
+- **4 Generation Sources** (combinable):
+  - Project analysis — scan codebase for patterns and conventions
+  - GitHub PR review mining — extract patterns from past PR reviews
+  - Interactive Q&A — collaborative checklist building with user input
+  - Universal best practices — common code quality patterns
+- **Parallel Execution**: Automatic modes (project analysis, PR mining, universal) run as parallel agents
+- **Direct Compatibility**: Output is structured for immediate use by `code-review-plus`
+- **Tri-Modal Architecture**: Separate step folders for create (`steps-c/`), edit (`steps-e/`), and validate (`steps-v/`)
 
-### 자동 설치
+## Included Skills
+
+Sourced from [obra/superpowers](https://github.com/obra/superpowers):
+
+| Skill | Description |
+|-------|-------------|
+| `test-driven-development` | RED-GREEN-REFACTOR TDD process + testing anti-patterns guide |
+| `systematic-debugging` | 4-phase systematic debugging + root cause tracing + defensive validation |
+| `dispatching-parallel-agents` | Parallel agent dispatch patterns for independent tasks |
+
+## Installation
+
+### Automatic
 
 ```bash
 git clone https://github.com/hojeongna/bmad-method-plus-workflow.git
@@ -41,35 +65,50 @@ cd bmad-method-plus-workflow
 bash install.sh
 ```
 
-### 수동 설치
+### Manual
 
 ```bash
-# 스킬 복사
+# Copy skills
 cp -r skills/* ~/.claude/skills/
 
-# 워크플로우 복사
+# Copy workflows
 mkdir -p ~/.claude/workflows
 cp -r workflows/* ~/.claude/workflows/
 
-# 커맨드 복사
+# Copy commands
 cp commands/* ~/.claude/commands/
 ```
 
-## 설치 결과 구조
+### Update
+
+Re-run `install.sh` to update all installed files:
+
+```bash
+bash install.sh
+```
+
+## Installed File Structure
 
 ```
 ~/.claude/
 ├── commands/
 │   ├── bmad-bmm-dev-story-plus.md
-│   └── bmad-bmm-code-review-plus.md
+│   ├── bmad-bmm-code-review-plus.md
+│   └── bmad-bmm-checklist-for-codereview.md
 ├── workflows/
 │   ├── dev-story-plus/
 │   │   ├── workflow.md
 │   │   ├── steps-c/ (8 step files)
 │   │   └── data/checklist.md
-│   └── code-review-plus/
+│   ├── code-review-plus/
+│   │   ├── workflow.md
+│   │   └── steps-c/ (6 step files)
+│   └── checklist-for-codereview/
 │       ├── workflow.md
-│       └── steps-c/ (6 step files)
+│       ├── steps-c/ (5 step files)
+│       ├── steps-e/ (3 step files)
+│       ├── steps-v/ (2 step files)
+│       └── data/ (analysis-categories.md, checklist-template.md)
 └── skills/
     ├── test-driven-development/
     │   ├── SKILL.md
@@ -83,38 +122,41 @@ cp commands/* ~/.claude/commands/
         └── SKILL.md
 ```
 
-## 사용법
+## Usage
 
-BMAD BMM이 설치된 프로젝트에서:
+In any project with BMAD BMM installed:
 
 ```
-# 스토리 구현 (TDD + 병렬 에이전트)
+# Story implementation (TDD + parallel agents)
 /bmad-bmm-dev-story-plus
 
-# 체크리스트 기반 코드 리뷰
+# Checklist-based code review
 /bmad-bmm-code-review-plus
+
+# Generate/edit/validate code review checklists
+/bmad-bmm-checklist-for-codereview
 ```
 
-## 요구사항
+## Requirements
 
 - [Claude Code](https://claude.com/claude-code) CLI
-- [BMAD Method](https://github.com/bmadcode/BMAD-METHOD) BMM 모듈이 프로젝트에 설치되어 있어야 함 (`_bmad/bmm/config.yaml` 필요)
+- [BMAD Method](https://github.com/bmadcode/BMAD-METHOD) BMM module installed in your project (`_bmad/bmm/config.yaml` required)
 
-## 워크플로우 흐름
+## Workflow Flows
 
 ### dev-story-plus
 
 ```
-step-01-init (또는 step-01b-continue)
+step-01-init (or step-01b-continue)
     ↓
 step-02-setup
     ↓
 step-03-analyze ← ─ ─ ─ ─ ─ ─ ─ ┐
-    ↓ (병렬 or 순차)              │ (남은 태스크 있으면 루프)
+    ↓ (parallel or sequential)    │ (loop if tasks remain)
 step-04-implement                 │
     ↓                             │
 step-05-validate ─ ─ ─ ─ ─ ─ ─ ─ ┘
-    ↓ (전부 완료)
+    ↓ (all tasks done)
 step-06-completion
     ↓
 step-07-communicate (END)
@@ -124,26 +166,58 @@ step-07-communicate (END)
 
 ```
 step-01-init
-    │ 체크리스트 로드 (없으면 HALT)
-    │ 리뷰 소스 선택: [S] 스토리 / [D] git diff / [M] 직접 지정
+    │ Load checklist (HALT if none)
+    │ Select source: [S] Story / [D] Git diff / [M] Manual
     ↓
 step-02-collect
-    │ 소스별 파일 수집
+    │ Collect files by source type
     ↓
 step-03-review
-    │ 병렬 에이전트 디스패치 (파일별)
-    │ 각 에이전트: 체크리스트 기준으로만 검토
+    │ Parallel agent dispatch (one per file)
+    │ Each agent: review against full checklist only
     ↓
 step-04-report
-    │ 결과 취합 + 우선순위 (HIGH/MEDIUM/LOW)
-    │ 리포트 출력
-    │   [F] 수정 진행 → step-05
-    │   [S] 수정 없이 완료 → step-06
+    │ Aggregate results
+    │ Assign priority (HIGH/MEDIUM/LOW)
+    │ Assign scope (SMALL/LARGE)
+    │ Present report
+    │   [F] Full fix    → step-05
+    │   [S] Small only  → step-05
+    │   [H] High only   → step-05
+    │   [X] Skip        → step-06
     ↓
-step-05-fix (optional)
-    │ 위반 항목 코드 수정
+step-05-fix (parallel)
+    │ Filter findings by selected scope
+    │ Parallel agent dispatch (one per file)
+    │ No deferral — all items in scope MUST be fixed
     ↓
 step-06-complete (END)
-    │ 스토리 기반이면 review → done
-    │ 완료 요약
+    │ Update story status (if story-based)
+    │ Completion summary
 ```
+
+### checklist-for-codereview
+
+**Create mode:**
+
+```
+step-01-init
+    │ Select generation modes (combinable)
+    ↓
+step-02-execute
+    │ Run selected modes as parallel agents
+    │ (project analysis, PR mining, universal)
+    ↓
+step-03-interactive
+    │ Interactive Q&A with user
+    ↓
+step-04-integrate
+    │ Merge all sources into unified checklist
+    ↓
+step-05-finalize (END)
+    │ Output checklist md file
+```
+
+**Edit mode:** `step-01-assess` → `step-02-edit` → `step-03-complete`
+
+**Validate mode:** `step-01-validate` → `step-02-report`

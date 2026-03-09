@@ -52,6 +52,13 @@ For each finding, assign one priority level:
 - **MEDIUM**: Naming violations, structural issues, wrong file organization (e.g., type in wrong location, constants inside component)
 - **LOW**: Style issues, minor naming inconsistencies
 
+### 2b. Assign Scope
+
+For each finding, assign scope:
+
+- **SMALL**: Simple fixes — variable rename, import addition, single-line change, type annotation, etc.
+- **LARGE**: Broad changes — file structure change, logic refactoring, multi-file impact, architectural change
+
 ### 3. Present Report
 
 "**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
@@ -66,7 +73,9 @@ For each finding, assign one priority level:
 
 For each file:
 **📄 {{file_path}}** — {{status: PASS or FAIL}}
-- 🔴/🟡/🟢 [체크리스트 카테고리] 항목: 설명 (라인 {{line}})
+- 🔴/🟡/🟢 [체크리스트 카테고리] 항목: 설명 (라인 {{line}}) [SMALL/LARGE]
+
+**범위별 요약:** 🔧 Small: {{small_count}}건, 🏗️ Large: {{large_count}}건
 
 **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**"
 
@@ -81,19 +90,23 @@ Auto-proceed: immediately load, read entire file, then execute {completeStepFile
 ### 5. Ask About Fixes (only if violations exist)
 
 "**위반 항목을 수정할까요?**
-**[F]** Fix — 위반 항목 자동 수정 진행
-**[S]** Skip — 수정 없이 완료"
+**[F]** Full — 모든 발견 사항 무조건 수정
+**[S]** Small — 작은 범위 수정만 진행
+**[H]** High — 필수(HIGH 우선순위)만 수정
+**[X]** Skip — 수정 없이 완료"
 
 #### Menu Handling Logic:
 
-- **IF F:** Load, read entire file, then execute {fixStepFile}
-- **IF S:** Load, read entire file, then execute {completeStepFile}
+- **IF F:** Set fixScope='ALL', load, read entire file, then execute {fixStepFile}
+- **IF S:** Set fixScope='SMALL', load, read entire file, then execute {fixStepFile}
+- **IF H:** Set fixScope='HIGH', load, read entire file, then execute {fixStepFile}
+- **IF X:** Load, read entire file, then execute {completeStepFile}
 
 #### EXECUTION RULES:
 
 - ALWAYS halt and wait for user input after presenting menu
 - Only proceed based on user selection
-- Do NOT default to either option
+- Do NOT default to any option
 
 ## SYSTEM SUCCESS/FAILURE METRICS
 
@@ -102,8 +115,9 @@ Auto-proceed: immediately load, read entire file, then execute {completeStepFile
 - All findings collected from parallel agents
 - Findings grouped by file with duplicates removed
 - Priority (HIGH/MEDIUM/LOW) assigned to every finding
+- Scope (SMALL/LARGE) assigned to every finding
 - Clear report presented with checklist item references
-- User prompted for fix/skip decision (or auto-proceeded if no violations)
+- User prompted for fix scope selection (or auto-proceeded if no violations)
 
 ### FAILURE:
 
