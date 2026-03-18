@@ -39,6 +39,14 @@ cp "$SCRIPT_DIR/workflows/code-review-plus/workflow.md" "$CLAUDE_DIR/workflows/c
 cp "$SCRIPT_DIR/workflows/code-review-plus/steps-c/"* "$CLAUDE_DIR/workflows/code-review-plus/steps-c/"
 echo "  - code-review-plus (workflow.md + 6 step files)"
 
+# bug-hunt-plus
+mkdir -p "$CLAUDE_DIR/workflows/bug-hunt-plus/steps-c"
+mkdir -p "$CLAUDE_DIR/workflows/bug-hunt-plus/data"
+cp "$SCRIPT_DIR/workflows/bug-hunt-plus/workflow.md" "$CLAUDE_DIR/workflows/bug-hunt-plus/"
+cp "$SCRIPT_DIR/workflows/bug-hunt-plus/steps-c/"* "$CLAUDE_DIR/workflows/bug-hunt-plus/steps-c/"
+cp "$SCRIPT_DIR/workflows/bug-hunt-plus/data/"* "$CLAUDE_DIR/workflows/bug-hunt-plus/data/"
+echo "  - bug-hunt-plus (workflow.md + 8 step files + bug-report template)"
+
 # checklist-for-codereview
 mkdir -p "$CLAUDE_DIR/workflows/checklist-for-codereview/steps-c"
 mkdir -p "$CLAUDE_DIR/workflows/checklist-for-codereview/steps-e"
@@ -57,9 +65,11 @@ mkdir -p "$CLAUDE_DIR/commands"
 cp "$SCRIPT_DIR/commands/bmad-bmm-dev-story-plus.md" "$CLAUDE_DIR/commands/"
 cp "$SCRIPT_DIR/commands/bmad-bmm-code-review-plus.md" "$CLAUDE_DIR/commands/"
 cp "$SCRIPT_DIR/commands/bmad-bmm-checklist-for-codereview.md" "$CLAUDE_DIR/commands/"
+cp "$SCRIPT_DIR/commands/bmad-bmm-bug-hunt-plus.md" "$CLAUDE_DIR/commands/"
 echo "  - /bmad-bmm-dev-story-plus command"
 echo "  - /bmad-bmm-code-review-plus command"
 echo "  - /bmad-bmm-checklist-for-codereview command"
+echo "  - /bmad-bmm-bug-hunt-plus command"
 
 echo ""
 echo "=== Installation Complete! ==="
@@ -68,5 +78,6 @@ echo "Available commands in any BMAD BMM project:"
 echo "  /bmad-bmm-dev-story-plus    - TDD + parallel agent story implementation"
 echo "  /bmad-bmm-code-review-plus  - Checklist-based code review"
 echo "  /bmad-bmm-checklist-for-codereview - Generate/edit/validate code review checklists"
+echo "  /bmad-bmm-bug-hunt-plus           - Systematic debugging with escalation levels"
 echo ""
 echo "Requirement: Project must have _bmad/bmm/config.yaml (BMAD BMM installed)"
