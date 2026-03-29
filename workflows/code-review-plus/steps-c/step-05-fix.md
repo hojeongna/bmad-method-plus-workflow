@@ -36,6 +36,21 @@ Fix checklist violations identified in the report using parallel agents (one age
 - 🛑 **NO EXCUSES**: "범위가 크다", "리팩토링 대상", "복잡한 변경" 등의 사유로 수정을 건너뛰는 것 절대 금지
 - 🛑 선택된 fixScope 내의 모든 항목은 반드시 수정 완료해야 함
 
+## EXECUTION PROTOCOLS:
+
+- Filter findings by fixScope, then dispatch parallel fix agents
+- Collect and verify all agent results before proceeding
+- After fixes, auto-detect and run available tests (type check, build, test)
+- Auto-fix test failures up to 3 retries
+- FORBIDDEN to proceed without all agents completing
+
+## CONTEXT BOUNDARIES:
+
+- Available: Findings report from step-04, fixScope selection, parallel agents skill
+- Focus: Fix ONLY flagged violations, then verify with tests
+- Limits: One agent per file, no feature additions, no refactoring beyond findings
+- Dependencies: step-04 report (findings + priorities + scope)
+
 ## MANDATORY SEQUENCE
 
 **CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise.
@@ -103,13 +118,49 @@ When all agents return:
 
 **완료 단계로 진행합니다...**"
 
-### 7. Auto-Proceed
+### 7. Auto-Detect and Run Tests
+
+After fixes are applied, automatically detect and run available tests.
+
+**Detection sequence:**
+
+1. **타입 체크:** `tsconfig.json` 존재 여부 확인 → 있으면 `tsc --noEmit` 실행
+2. **빌드 테스트:** `package.json`의 `scripts.build` 확인 → 있으면 패키지 매니저에 맞게 실행 (npm/pnpm/yarn run build)
+3. **테스트 실행:** 아래 순서로 감지
+   - `package.json`의 `scripts.test` → npm/pnpm/yarn test
+   - `behave` 설정 파일 존재 → `behave`
+   - `pytest.ini` / `pyproject.toml`의 pytest 설정 → `pytest`
+
+**패키지 매니저 감지:** `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, 그 외 → npm
+
+**실행 규칙:**
+- 감지된 테스트만 실행 — 감지 안 되면 스킵
+- 각 테스트 결과를 "**✅ PASS**" 또는 "**❌ FAIL**"로 표시
+
+**IF ANY TEST FAILS:**
+
+"**❌ 테스트 실패 발견:**
+{{failure_output}}
+
+**자동 수정 후 재실행합니다...**"
+
+- 실패 원인을 분석하고 즉시 수정
+- 수정 후 실패한 테스트만 재실행
+- 통과할 때까지 반복 (최대 3회)
+- 3회 초과 실패 시: "**⚠️ 자동 수정 한계 도달. 수동 확인이 필요합니다.**" 출력 후 진행
+
+**IF ALL TESTS PASS:**
+
+"**✅ 모든 테스트 통과!**
+{{list of tests run and their status}}"
+
+### 8. Auto-Proceed
 
 Immediately load, read entire file, then execute {nextStepFile}
 
 #### Menu Handling Logic:
 
-- After fixes reported, immediately proceed to {nextStepFile} (step-06-complete)
+- After fixes reported, run auto-detected tests, auto-fix failures, then proceed to {nextStepFile} (step-06-complete)
 
 #### EXECUTION RULES:
 
@@ -129,6 +180,9 @@ Immediately load, read entire file, then execute {nextStepFile}
 - ALL items in selected scope were fixed — zero deferrals
 - Each fix corresponds to a specific checklist finding
 - Fix results reported clearly
+- Available tests auto-detected and executed
+- Failed tests triggered auto-fix and re-run
+- All tests passed before proceeding
 - Auto-proceeded to step-06-complete
 
 ### FAILURE:
@@ -143,4 +197,8 @@ Immediately load, read entire file, then execute {nextStepFile}
 - Proceeding before all agents complete
 - Not verifying fixes after applying
 
-**Master Rule:** Fix ONLY checklist violations. Fix ALL of them in the selected scope. No deferral. No excuses. Any skipped fix is SYSTEM FAILURE.
+- Skipping test execution when tests are detected
+- Not attempting auto-fix on test failure
+- Proceeding with failing tests without reporting
+
+**Master Rule:** Fix ONLY checklist violations. Fix ALL of them in the selected scope. No deferral. No excuses. Any skipped fix is SYSTEM FAILURE. After fixes, run all detected tests and auto-fix failures.

@@ -52,8 +52,26 @@ Collect the list of changed files AND their per-file diffs (added/modified lines
 - Note: story_file path is retained for status updates
 
 **IF review_source == "diff":**
-- Ask user for the diff range (e.g., branch name, commit range)
-- Default suggestion: `main...HEAD` or `HEAD~1`
+
+"**diff 범위를 선택해주세요:**
+
+**[1]** main 대비 전체 변경 (main...HEAD)
+**[2]** 최근 커밋 1개분 (HEAD~1..HEAD)
+**[3]** 커밋 안 된 변경사항 (HEAD)
+**[M]** 직접 입력"
+
+#### Menu Handling Logic:
+
+- IF 1: Set diff_range = "main...HEAD"
+- IF 2: Set diff_range = "HEAD~1..HEAD"
+- IF 3: Set diff_range = "HEAD"
+- IF M: Ask user for custom diff range, then set diff_range to user input
+- IF Any other: help user, then redisplay menu
+
+#### EXECUTION RULES:
+
+- ALWAYS halt and wait for user input after presenting menu
+- After selection, set diff_range and proceed to Section 2
 
 **IF review_source == "manual":**
 - Ask user to provide the file paths to review
